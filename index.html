@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" type="text/css" href=style.css>
+    <title>C's Weather App</title>
+</head>
+<body>
+    
+    <div class="words" contenteditable></div>
+    <p id="weather-summary"></p>
+
+    <script type='text/javascript' src='config.js'></script>
+
+
+    <script>
+    window.SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    const recognition = new SpeechRecognition(); 
+    recognition.interimResults = true; 
+    recognition.lang = 'en-US';
+
+    let p = document.createElement('p');
+    const words = document.querySelector('.words');
+    words.appendChild(p);
+
+    recognition.addEventListener('result', e => {
+        // turn results into an array in order to map over it and return the first item
+        const transcript = Array.from(e.results)
+        .map(result => result[0])
+        .map(result => result.transcript) // map over it once more and return the transcript
+        .join(''); // turn back into string
+        // console.log(transcript)
+
+        p.textContent = transcript; // replaces text
+        if (e.results[0].isFinal) {
+            p = document.createElement('p');
+            words.appendChild(p);
+        }
+        
+        if(transcript.includes('unicorn')) {
+            console.log('unicorn 🦄🦄🦄🦄🦄🦄🦄🦄🦄🦄🦄🦄🦄🦄🦄🦄🦄🦄🦄🦄🦄🦄🦄🦄🦄')
+        }
+
+        /////////////////////////////////////////////////////////////////////////
+
+        if (transcript.includes('ok')) {
+            var weatherSummary = document.getElementById('weather-summary');
+            
+            // Find out location of the device
+            let getLocation = function() {
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(function(position){
+                        var lat = position.coords.latitude;
+                        var lang = position.coords.longitude;
+                        showWeather(lat, lang)
+                    })
+                }
+                else {
+                    window.alert('Where are you?')
+                }
+            }
+            
+
+            var weatherSummary = document.getElementById('weather-summary');
+
+            
+            var secretkey = config.SECRET_KEY;
+            console.log(secretkey);
+
+            let lat = 45.3483;
+            let lang = -75.7584;
+
+        
+            fetch(`https://cors-anywhere.herokuapp.com/https://api.darksky.net/forecast/${secretkey}/${lat},${lang}?units=ca`)
+            .then((res) => {
+                if (res.ok) {
+                    return res.json();
+                } else {
+                    throw new Error('Bad HTTP? res 1 not ok')
+                }
+            }).then((json) => {
+                weatherSummary.innerHTML = `${json.currently.summary} ${json.currently.temperature}`;
+            })
+            .catch((err) => {
+                console.log('ERROR:', err.message);
+            });
+
+            getLocation();
+
+        }
+    });
+
+
+    // add a second event listener for the end when you stop speaking and then start again.
+    recognition.addEventListener('end', recognition.start);
+    recognition.start();
+        
+    </script>
+
+</body>
+</html>
